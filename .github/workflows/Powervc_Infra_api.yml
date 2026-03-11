@@ -27,29 +27,6 @@ jobs:
              /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml -o /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
         continue-on-error: true
 
-      - name: Upload Report to GitHub
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: PowerVC-Test-Results 123
-          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
-          retention-days: 14
-      - name: Generate Direct GitHub Summary
-        if: always()
-        run: |
-          echo "## PowerVC Test Execution 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Execution | Completed ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Full Report | [Download Artifact below] |" >> $GITHUB_STEP_SUMMARY
-          
-          # Optional: If you want to see the last 10 lines of results directly
-          echo "### Quick Log Preview" >> $GITHUB_STEP_SUMMARY
-          echo '```text' >> $GITHUB_STEP_SUMMARY
-          tail -n 10 /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-
       - name: Upload Report
         uses: actions/upload-artifact@v4
         if: always()
