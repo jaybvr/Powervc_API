@@ -27,3 +27,7 @@ jobs:
             powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py \
             --debug=show \
             -a type=negative
+      - name: Generate Summary
+        run: |
+          echo "## PowerVC API Execution Report 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "The Execution was successful!" >> $GITHUB_STEP_SUMMARY  
