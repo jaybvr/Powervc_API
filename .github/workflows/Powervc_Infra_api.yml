@@ -8,14 +8,11 @@ on:
 jobs:
   run-tests:
     runs-on: self-hosted
-    permissions:
-      contents: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Execute nosetests
+      - name: Execute nosetests with HTML Plugin
         run: |
+          # 1. MUST INSTALL ONCE ON RHEL: pip install nose-html-reporting
+          
           export TEMPEST_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/"
           export TEMPEST_CONFIG="powervc-tempest/etc/powervc_jay.conf"
           export MAPPERS_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/etc/"
@@ -23,32 +20,25 @@ jobs:
           
           cd /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest
           
+          # This generates a single, portable HTML file
           /usr/local/bin/nosetests \
-            --with-xunit --xunit-file=nosetests.xml \
+            --with-html \
+            --html-file=report.html \
             -s -d -v \
             powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py \
             -a type=negative
         continue-on-error: true
 
-      - name: Prep Allure Results
+      - name: Upload Report to GitHub
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PowerVC-Test-Results
+          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/report.html
+          retention-days: 14
+
+      - name: Summary
         if: always()
         run: |
-          mkdir -p allure-results
-          cp /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml allure-results/
-
-      # Fixed Inputs: changed allure_results -> report_dir and removed unsupported keys
-      - name: Build Allure Report (JS Version)
-        uses: mgrybyk-org/allure-report-branch-js-action@v1
-        if: always()
-        with:
-          report_dir: allure-results
-          gh_pages: gh-pages
-          report_id: "powervc-report"
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history # This is created by the action above
+          echo "## PowerVC Report Ready 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "Download 'PowerVC-Test-Results' from the Summary page to view the HTML report." >> $GITHUB_STEP_SUMMARY
