@@ -8,7 +8,7 @@ on:
 
 jobs:
   run-remote-tests:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Execute nosetests via SSH
         uses: appleboy/ssh-action@v1.0.3
