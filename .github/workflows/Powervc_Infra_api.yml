@@ -34,7 +34,7 @@ jobs:
       - name: Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/powervc_tempest/nosetests.xml" # Adjust path to match your workspace
+          paths: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml" # Adjust path to match your workspace
         if: always() # Ensures the report shows even if tests fail
 
 
