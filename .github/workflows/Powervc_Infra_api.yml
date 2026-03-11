@@ -26,6 +26,7 @@ jobs:
           /usr/bin/python3.9 tools/reportgenerator_beta.py -i \
              /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml -o /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
           cp /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml allure-results
+
         continue-on-error: true
 
       - name: Generate Allure Report (No Docker)
@@ -37,12 +38,13 @@ jobs:
           gh_pages: gh-pages
           report_id: "powervc-reports"
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+
+      - name: Upload Allure Report Artifact
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history # The action above creates this folder
-
+          name: PowerVC-Allure-Report
+          # Upload the entire report directory
+          path: allure-report/
+          retention-days: 14
       
