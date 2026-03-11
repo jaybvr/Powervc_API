@@ -40,5 +40,25 @@ jobs:
           paths: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml" # Adjust path to match your workspace
         if: always() # Ensures the report shows even if tests fail
 
+      - name: Detailed Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Nose Tests
+          path: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml"
+          reporter: java-junit # Works for most JUnit-style XMLs          
 
-          
+      - name: Testspace client setup
+        uses: testspace-com/setup-testspace@v1
+        with:
+          domain: ${{ github.repository_owner }}
+      
+      - name: Push results to Testspace
+        run: testspace "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml"
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml"
+       
