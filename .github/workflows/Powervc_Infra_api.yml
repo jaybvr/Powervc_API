@@ -42,3 +42,26 @@ jobs:
         run: |
           echo "## PowerVC Report Ready 🚀" >> $GITHUB_STEP_SUMMARY
           echo "Download 'PowerVC-Test-Results' from the Summary page to view the HTML report." >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Email Notification via Outlook
+        uses: dawidd6/action-send-mail@v3
+        if: always()
+        with:
+          # Outlook SMTP Settings
+          server_address: smtp.office365.com
+          server_port: 587
+          secure: false # Required for STARTTLS (Port 587)
+          username: ${{ secrets.MAIL_USERNAME }} # e.g., user@outlook.com
+          password: ${{ secrets.MAIL_PASSWORD }} # Use an App Password
+          subject: "PowerVC Test Report - Run #${{ github.run_number }}"
+          to: bjayasan@in.ibm.com
+          from: "PowerVC Automation <${{ secrets.MAIL_USERNAME }}>"
+          body: |
+            The PowerVC automated test run has completed.
+            
+            Status: ${{ job.status }}
+            View Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            Please find the attached Allure HTML report.
+          # Attach the single-file report we generated earlier
+          attachments: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
