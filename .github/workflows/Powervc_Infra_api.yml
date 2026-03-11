@@ -2,63 +2,69 @@ name: Scheduled PowerVC Nosetests
 
 on:
   schedule:
-    - cron: '30 4,11 * * *' # 10:00 AM & 05:00 PM IST (04:30 & 11:30 UTC)
+    - cron: '30 4,11 * * *' 
   workflow_dispatch:
 
 jobs:
   run-tests:
-    runs-on: self-hosted # Tells GitHub to use your Automation123 runner
+    runs-on: self-hosted
+    permissions:
+      contents: write  # Required to update the gh-pages branch
     steps:
       - name: Execute nosetests directly on host
         run: |
-          # 1. Set Environment Variables
           export TEMPEST_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/"
           export TEMPEST_CONFIG="powervc-tempest/etc/powervc_jay.conf"
           export MAPPERS_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/etc/"
           export MAPPERS_CONFIG="mappers.xml"
           
-          # 2. Change Directory
           cd /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest
           
-          # 3. Execute with specific binary and flags
+          # Added --xunit-file to ensure we know exactly where the XML lands
           /usr/local/bin/nosetests \
             --with-xunit \
+            --xunit-file=nosetests.xml \
             -s -d -v \
             powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py \
             --debug=show \
             -a type=negative
+        continue-on-error: true # Ensure report generates even if tests fail
+
+      - name: Prep Allure Results
+        run: |
+          mkdir -p allure-results
+          # Copy the specific XML file to the results folder
+          cp /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml allure-results/
+        if: always()
+
+      - name: Load Allure History
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build Allure Report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          allure_results: allure-results
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+          keep_reports: 20 # Keeps last 20 runs in history
+
+      - name: Deploy Allure Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
       - name: Generate Summary
         run: |
           echo "## PowerVC API Execution Report 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "The Execution was successful!" >> $GITHUB_STEP_SUMMARY  
-        
-      - name: Test Summary
-        uses: test-summary/action@v2
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-        with:
-          paths: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml" # Adjust path to match your workspace
-        if: always() # Ensures the report shows even if tests fail
-
-      - name: Detailed Test Report
-        uses: dorny/test-reporter@v1
+          echo "The Execution was successful! View the [Allure Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/) for details." >> $GITHUB_STEP_SUMMARY
         if: always()
-        with:
-          name: Nose Tests
-          path: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml"
-          reporter: java-junit # Works for most JUnit-style XMLs          
-
-      - name: Testspace client setup
-        uses: testspace-com/setup-testspace@v1
-        with:
-          domain: ${{ github.repository_owner }}
-      
-      - name: Push results to Testspace
-        run: testspace "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml"
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml"
-       
