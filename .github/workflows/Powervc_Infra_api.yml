@@ -8,12 +8,14 @@ on:
 jobs:
   run-tests:
     runs-on: self-hosted
+    permissions:
+      contents: write
     steps:
-      - name: Execute nosetests with HTML Plugin
-        run: |
-          # 1. Ensure the HTML reporting plugin is installed on the host
-          # pip install nose-html-reporting 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
+      - name: Execute nosetests
+        run: |
           export TEMPEST_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/"
           export TEMPEST_CONFIG="powervc-tempest/etc/powervc_jay.conf"
           export MAPPERS_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/etc/"
@@ -21,31 +23,39 @@ jobs:
           
           cd /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest
           
-          # Generate both XML (for history) and HTML (for beauty)
           /usr/local/bin/nosetests \
             --with-xunit --xunit-file=nosetests.xml \
             --with-html --html-file=beautiful_report.html \
             -s -d -v \
             powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py \
-            --debug=show \
             -a type=negative
         continue-on-error: true
+
       - name: Prep Allure Results
+        if: always()
         run: |
           mkdir -p allure-results
-          # Move the XML to the folder the Allure action expects
           cp /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml allure-results/
-        if: always()
 
-      - name: Build Allure Report (No Docker)
-        uses: mgrybyk/allure-report-gh-action@v0.2.0
+      - name: Load Allure History
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      # Using the correct JS-based action to avoid Docker errors
+      - name: Build Allure Report (JS Version)
+        uses: mgrybyk-org/allure-report-branch-js-action@v1
         if: always()
         with:
           allure_results: allure-results
           gh_pages: gh-pages
           allure_report: allure-report
           allure_history: allure-history
-          
+          keep_reports: 20
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: always()
@@ -53,5 +63,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
-
-     
