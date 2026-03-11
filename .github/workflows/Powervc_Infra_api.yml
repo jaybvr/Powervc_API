@@ -35,3 +35,7 @@ jobs:
         run: |
           CHART_URL="https://quickchart.io{type:'bar',data:{labels:['Tests','Lints'],datasets:[{label:'Success',data:[95,100]}]}}"
           echo "![Chart]($CHART_URL)" >> $GITHUB_STEP_SUMMARY
+
+
+
+          
