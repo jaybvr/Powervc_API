@@ -31,8 +31,11 @@ jobs:
         run: |
           echo "## PowerVC API Execution Report 🚀" >> $GITHUB_STEP_SUMMARY
           echo "The Execution was successful!" >> $GITHUB_STEP_SUMMARY  
+        
       - name: Test Summary
         uses: test-summary/action@v2
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         with:
           paths: "/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml" # Adjust path to match your workspace
         if: always() # Ensures the report shows even if tests fail
