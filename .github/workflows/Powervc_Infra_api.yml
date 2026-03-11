@@ -34,8 +34,9 @@ jobs:
         if: always()
         with:
           name: PowerVC-Results
-          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
-          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/allure-report/index.html
+          path: |
+             /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
+             allure-report/
       - name: Summary
         if: always()
         run: |
