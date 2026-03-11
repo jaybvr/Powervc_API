@@ -37,6 +37,6 @@ jobs:
         with:
           name: PowerVC-Allure-Report
           # Upload the entire report directory
-          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/allure-report/
+          path: allure-report/index.html
           retention-days: 14
       
