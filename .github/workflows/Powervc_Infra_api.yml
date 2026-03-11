@@ -21,7 +21,7 @@ jobs:
           cd /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest
           
           # This generates a single, portable HTML file
-          /usr/local/bin/nosetests --with-xunit --with-allure --logdir=allure-results -s -d -v powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py --debug=show -a type=negative
+          /usr/local/bin/nosetests --with-xunit -s -d -v powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py --debug=show -a type=negative
           
           /usr/bin/python3.9 tools/reportgenerator_beta.py -i \
              /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml -o /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
