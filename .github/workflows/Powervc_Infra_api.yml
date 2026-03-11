@@ -1,0 +1,36 @@
+name: Scheduled PowerVC Nosetests
+
+on:
+  schedule:
+    # Runs at 10:00 AM and 05:00 PM IST (04:30 and 11:30 UTC)
+    - cron: '30 4,11 * * *'
+  workflow_dispatch: # Allows manual trigger for testing
+
+jobs:
+  run-remote-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute nosetests via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Set Environment Variables
+            export TEMPEST_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/"
+            export TEMPEST_CONFIG="powervc-tempest/etc/powervc_jay.conf"
+            export MAPPERS_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/etc/"
+            export MAPPERS_CONFIG="mappers.xml"
+            
+            # Change Directory (chdir)
+            cd /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest
+            
+            # Execute with specific binary and flags using Bash
+            /bin/bash -c "/usr/local/bin/nosetests \
+              --with-xunit \
+              -s -d -v \
+              powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py \
+              --debug=show \
+              -a type=negative"
