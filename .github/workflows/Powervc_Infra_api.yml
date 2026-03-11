@@ -37,4 +37,12 @@ jobs:
           gh_pages: gh-pages
           report_id: "powervc-reports"
 
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history # The action above creates this folder
+
       
