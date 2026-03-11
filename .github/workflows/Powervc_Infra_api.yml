@@ -31,16 +31,9 @@ jobs:
             -a type=negative
         continue-on-error: true
 
-      - name: Upload Beautiful HTML Report
+      - name: Upload Test Results
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: PowerVC-Test-Report
-          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/beautiful_report.html
-          retention-days: 14
-
-      - name: Generate Summary
+          name: nose-results
+          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml
         if: always()
-        run: |
-          echo "## PowerVC API Execution Report 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Execution finished. Download the **PowerVC-Test-Report** from the 'Artifacts' section above to view the beautiful HTML results." >> $GITHUB_STEP_SUMMARY
