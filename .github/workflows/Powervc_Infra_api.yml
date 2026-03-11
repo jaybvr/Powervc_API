@@ -43,15 +43,16 @@ jobs:
           echo "## PowerVC Report Ready 🚀" >> $GITHUB_STEP_SUMMARY
           echo "Download 'PowerVC-Test-Results' from the Summary page to view the HTML report." >> $GITHUB_STEP_SUMMARY
 
-     
       - name: Send Email via RHEL Local Mail
         if: always()
         run: |
-          # Install mailx if missing: sudo dnf install -y smailx
-          echo "The PowerVC automated test run has completed. Status: ${{ job.status }}. View details here: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" | \
-          mailx -s "PowerVC Test Report - Run #${{ github.run_number }}" \
-          -a /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html \
+          # Define variables for clarity
+          REPORT_PATH="/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html"
+          BODY="The PowerVC automated test run has completed. Status: ${{ job.status }}. View details here: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          # Send email with attachment
+          echo "$BODY" | mailx -s "PowerVC Test Report - Run #${{ github.run_number }}" \
+          -a "$REPORT_PATH" \
           jaybvr.in@gmail.com
-            Please find the attached HTML report.
-          # Attach the single-file report we generated earlier
-          attachments: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
+          
+      
