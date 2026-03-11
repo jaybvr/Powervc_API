@@ -26,17 +26,9 @@ jobs:
           /usr/bin/python3.9 tools/reportgenerator_beta.py -i \
              /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml -o /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.html
           cp /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml allure-results
+          allure generate allure-results --clean -o allure-report
 
         continue-on-error: true
-
-      - name: Generate Allure Report (No Docker)
-        # This is a JavaScript action, so it won't look for docker.sock
-        uses: mgrybyk-org/allure-report-branch-js-action@v1
-        if: always()
-        with:
-          report_dir: allure-results
-          gh_pages: gh-pages
-          report_id: "powervc-reports"
 
 
       - name: Upload Allure Report Artifact
