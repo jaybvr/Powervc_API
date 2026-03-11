@@ -8,11 +8,12 @@ on:
 jobs:
   run-tests:
     runs-on: self-hosted
-    permissions:
-      contents: write  # Required to update the gh-pages branch
     steps:
-      - name: Execute nosetests directly on host
+      - name: Execute nosetests with HTML Plugin
         run: |
+          # 1. Ensure the HTML reporting plugin is installed on the host
+          # pip install nose-html-reporting 
+
           export TEMPEST_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/"
           export TEMPEST_CONFIG="powervc-tempest/etc/powervc_jay.conf"
           export MAPPERS_CONFIG_DIR="/var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/etc/"
@@ -20,51 +21,26 @@ jobs:
           
           cd /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest
           
-          # Added --xunit-file to ensure we know exactly where the XML lands
+          # Generate both XML (for history) and HTML (for beauty)
           /usr/local/bin/nosetests \
-            --with-xunit \
-            --xunit-file=nosetests.xml \
+            --with-xunit --xunit-file=nosetests.xml \
+            --with-html --html-file=beautiful_report.html \
             -s -d -v \
             powervc_tempest/tests/Regression/FVT/compute/test_trusted_profile.py \
             --debug=show \
             -a type=negative
-        continue-on-error: true # Ensure report generates even if tests fail
-
-      - name: Prep Allure Results
-        run: |
-          mkdir -p allure-results
-          # Copy the specific XML file to the results folder
-          cp /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/nosetests.xml allure-results/
-        if: always()
-
-      - name: Load Allure History
-        uses: actions/checkout@v4
-        if: always()
         continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages
 
-      - name: Build Allure Report
-        uses: simple-elf/allure-report-action@v1.7
+      - name: Upload Beautiful HTML Report
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          allure_results: allure-results
-          gh_pages: gh-pages
-          allure_report: allure-report
-          allure_history: allure-history
-          keep_reports: 20 # Keeps last 20 runs in history
-
-      - name: Deploy Allure Report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history
+          name: PowerVC-Test-Report
+          path: /var/lib/jenkins/workspace/RTC_code_copy/powervc-tempest/beautiful_report.html
+          retention-days: 14
 
       - name: Generate Summary
+        if: always()
         run: |
           echo "## PowerVC API Execution Report 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "The Execution was successful! View the [Allure Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/) for details." >> $GITHUB_STEP_SUMMARY
-        if: always()
+          echo "✅ Execution finished. Download the **PowerVC-Test-Report** from the 'Artifacts' section above to view the beautiful HTML results." >> $GITHUB_STEP_SUMMARY
